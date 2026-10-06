@@ -91,6 +91,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Config do
       external_links: Config.external_links(),
       name: Config.instance_name(),
       registrations_open: Config.instance_registrations_open?(),
+      restrict_profiles: Config.instance_restrict_profiles?(),
+      lock_profiles: Config.instance_lock_profiles?(),
       registrations_moderation: Config.instance_registrations_moderation?(),
       registrations_allowlist: Config.instance_registrations_allowlist?(),
       contact: Config.contact(),

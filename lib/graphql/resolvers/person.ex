@@ -5,12 +5,12 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
 
   import Mobilizon.Users.Guards
 
-  alias Mobilizon.{Actors, Events, Users}
+  alias Mobilizon.{Actors, Config, Events, Users}
   alias Mobilizon.Actors.{Actor, Follower, Member}
   alias Mobilizon.Events.Participant
   alias Mobilizon.Service.AntiSpam
   alias Mobilizon.Storage.{Page, Repo}
-  alias Mobilizon.Users.User
+  alias Mobilizon.Users.{LockedProfile, User}
   import Mobilizon.Web.Gettext
 
   alias Mobilizon.Federation.ActivityPub.Actions
@@ -109,10 +109,11 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
         %{preferred_username: _preferred_username} = args,
         %{context: %{current_user: %{disabled: false} = user} = context} = _resolution
       ) do
-    args = Map.put(args, :user_id, user.id)
+    args = user |> lock_profile_name(args) |> Map.put(:user_id, user.id)
     user_agent = Map.get(context, :user_agent, "")
 
-    with args <- Map.update(args, :preferred_username, "", &String.downcase/1),
+    with {:single_profile, true} <- {:single_profile, can_create_profile?(user)},
+         args <- Map.update(args, :preferred_username, "", &String.downcase/1),
          {:spam, :ham} <-
            {:spam,
             AntiSpam.service().check_profile(
@@ -126,6 +127,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
          {:ok, %Actor{} = new_person} <- Actors.new_person(args) do
       {:ok, new_person}
     else
+      {:single_profile, false} ->
+        {:error, dgettext("errors", "You can only have one profile")}
+
       {:error, err} ->
         {:error, err}
 
@@ -147,6 +151,27 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
     {:error, :user_disabled}
   end
 
+  # with `restrict_profiles` enabled, every account gets a single
+  # profile, whatever the login method (local, LDAP, OAuth). Administrators may
+  # still create more.
+  @spec can_create_profile?(User.t()) :: boolean()
+  defp can_create_profile?(%User{role: role} = user) do
+    is_admin(role) or not Config.instance_restrict_profiles?() or
+      Users.get_actors_for_user(user) == []
+  end
+
+  # with `lock_profiles` enabled, the username and display name come
+  # from the account email whatever the client sends.
+  @spec lock_profile_name(User.t(), map()) :: map()
+  defp lock_profile_name(%User{email: email} = user, args) do
+    if LockedProfile.locked?(user) do
+      username = LockedProfile.username_for(email)
+      Map.merge(args, %{preferred_username: username, name: username})
+    else
+      args
+    end
+  end
+
   @doc """
   This function is used to update an existing identity
   """
@@ -158,6 +183,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
         %{context: %{current_user: user}} = _resolution
       ) do
     require Logger
+    args = if LockedProfile.locked?(user), do: Map.delete(args, :name), else: args
     args = Map.put(args, :user_id, user.id)
 
     case owned_actor(user, id) do

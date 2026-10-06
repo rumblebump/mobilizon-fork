@@ -44,6 +44,8 @@ export interface IConfig {
   secondaryColor: string;
 
   registrationsOpen: boolean;
+  restrictProfiles: boolean;
+  lockProfiles: boolean;
   registrationsModeration: boolean;
   registrationsAllowlist: boolean;
   demoMode: boolean;

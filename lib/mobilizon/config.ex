@@ -158,6 +158,18 @@ defmodule Mobilizon.Config do
   @spec instance_hostname :: String.t()
   def instance_hostname, do: instance_config()[:hostname]
 
+  @doc """
+  Whether non-admin accounts are limited to a single profile.
+  """
+  @spec instance_restrict_profiles? :: boolean
+  def instance_restrict_profiles?, do: to_boolean(instance_config()[:restrict_profiles])
+
+  @doc """
+  Whether non-admin profiles are named after the account email and can't be renamed.
+  """
+  @spec instance_lock_profiles? :: boolean
+  def instance_lock_profiles?, do: to_boolean(instance_config()[:lock_profiles])
+
   @spec instance_registrations_open? :: boolean
   def instance_registrations_open?,
     do:

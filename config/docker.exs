@@ -64,6 +64,8 @@ config :mobilizon, :instance,
     |> String.split(",", trim: true),
   disable_database_login:
     System.get_env("MOBILIZON_INSTANCE_DISABLE_DATABASE_LOGIN", "false") == "true",
+  restrict_profiles: System.get_env("MOBILIZON_INSTANCE_RESTRICT_PROFILES", "false") == "true",
+  lock_profiles: System.get_env("MOBILIZON_INSTANCE_LOCK_PROFILES", "false") == "true",
   default_language: System.get_env("MOBILIZON_INSTANCE_DEFAULT_LANGUAGE", "en"),
   demo: System.get_env("MOBILIZON_INSTANCE_DEMO", "false") == "true",
   allow_relay: System.get_env("MOBILIZON_INSTANCE_ALLOW_RELAY", "true") == "true",

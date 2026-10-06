@@ -12,7 +12,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   alias Mobilizon.Service.Auth.Authenticator
   alias Mobilizon.Service.Statistics
   alias Mobilizon.Storage.Page
-  alias Mobilizon.Users.{Setting, User}
+  alias Mobilizon.Users.{LockedProfile, Setting, User}
 
   alias Mobilizon.Web.{Auth, Email}
   import Mobilizon.Web.Gettext
@@ -151,6 +151,8 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     with {:ok, email} <- lowercase_domain(email),
          :registration_ok <- check_registration_config(email, moderation),
          :not_deny_listed <- check_registration_denylist(email),
+         {:locked_username_taken, false} <-
+           {:locked_username_taken, LockedProfile.username_taken?(email)},
          {:spam, :ham} <-
            {:spam, AntiSpam.service().check_user(email, current_ip, user_agent)},
          {:ok, %User{} = user} <-
@@ -191,6 +193,12 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
          dgettext(
            "errors",
            "Your registration has been detected as spam and cannot be processed."
+         )}
+
+      {:locked_username_taken, true} ->
+        {:error,
+         dgettext("errors", "A profile with the username %{username} already exists",
+           username: LockedProfile.username_for(email)
          )}
 
       {:error, error} ->

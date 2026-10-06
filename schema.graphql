@@ -193,6 +193,12 @@ type Config {
   "Whether the registrations are opened"
   registrationsOpen: Boolean
 
+  "Whether non-admin accounts are limited to a single profile"
+  restrictProfiles: Boolean
+
+  "Whether non-admin profiles are named after the account email and locked"
+  lockProfiles: Boolean
+
   "Whether the registrations want moderation"
   registrationsModeration: Boolean
 

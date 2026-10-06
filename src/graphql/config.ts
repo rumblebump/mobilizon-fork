@@ -11,6 +11,8 @@ export const CONFIG = gql`
       version
       federating
       registrationsOpen
+      restrictProfiles
+      lockProfiles
       registrationsModeration
       registrationsAllowlist
       demoMode

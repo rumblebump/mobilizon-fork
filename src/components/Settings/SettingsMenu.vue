@@ -36,6 +36,11 @@
           }"
         />
         <SettingMenuItem
+          v-if="
+            !(restrictProfiles || lockProfiles) ||
+            !identities?.length ||
+            currentUser?.role == ICurrentUserRole.ADMINISTRATOR
+          "
           :title="t('New profile')"
           :to="{ name: RouteName.CREATE_IDENTITY }"
         />
@@ -97,10 +102,12 @@ import SettingMenuItem from "./SettingMenuItem.vue";
 import RouteName from "@/router/name";
 import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useCurrentUserIdentities } from "@/composition/apollo/actor";
+import { useRestrictProfiles } from "@/composition/apollo/config";
 import { useI18n } from "vue-i18n";
 
 const { currentUser } = useCurrentUserClient();
 const { identities } = useCurrentUserIdentities();
+const { restrictProfiles, lockProfiles } = useRestrictProfiles();
 
 const { t } = useI18n({ useScope: "global" });
 </script>

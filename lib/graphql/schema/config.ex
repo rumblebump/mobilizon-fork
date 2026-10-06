@@ -26,6 +26,14 @@ defmodule Mobilizon.GraphQL.Schema.ConfigType do
 
     field(:registrations_open, :boolean, description: "Whether the registrations are opened")
 
+    field(:restrict_profiles, :boolean,
+      description: "Whether non-admin accounts are limited to a single profile"
+    )
+
+    field(:lock_profiles, :boolean,
+      description: "Whether non-admin profiles are named after the account email and locked"
+    )
+
     field(:registrations_moderation, :boolean,
       description: "Whether the registrations want moderation"
     )

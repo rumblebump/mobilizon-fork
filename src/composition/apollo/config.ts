@@ -241,6 +241,20 @@ export function useSearchConfig() {
   return { searchConfig, error, loading, onResult };
 }
 
+export function useRestrictProfiles() {
+  const { result } = useQuery<{
+    config: Pick<IConfig, "restrictProfiles" | "lockProfiles">;
+  }>(CONFIG);
+
+  const restrictProfiles = computed(
+    () => result.value?.config?.restrictProfiles ?? false
+  );
+  const lockProfiles = computed(
+    () => result.value?.config?.lockProfiles ?? false
+  );
+  return { restrictProfiles, lockProfiles };
+}
+
 export function useRegistrationConfig() {
   const { result, error, loading, onResult } = useQuery<{
     config: Pick<

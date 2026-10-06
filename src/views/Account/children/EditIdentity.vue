@@ -35,6 +35,7 @@
           required
           v-model="identity.name"
           @update:modelValue="(value: string) => updateUsername(value)"
+          :disabled="nameLocked"
           id="identity-display-name"
           dir="auto"
           expanded
@@ -234,7 +235,7 @@ import { IFeedToken } from "@/types/feedtoken.model";
 import { ServerParseError } from "@apollo/client/link/http";
 import { ApolloCache, FetchResult, InMemoryCache } from "@apollo/client/core";
 import pick from "lodash/pick";
-import { ActorType } from "@/types/enums";
+import { ActorType, ICurrentUserRole } from "@/types/enums";
 import { useRouter } from "vue-router";
 import {
   useCurrentActorClient,
@@ -242,6 +243,8 @@ import {
 } from "@/composition/apollo/actor";
 import { useMutation, useQuery, useApolloClient } from "@vue/apollo-composable";
 import { useAvatarMaxSize } from "@/composition/config";
+import { useRestrictProfiles } from "@/composition/apollo/config";
+import { useCurrentUserClient } from "@/composition/apollo/user";
 import { computed, inject, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { convertToUsername } from "@/utils/username";
@@ -267,6 +270,15 @@ const props = defineProps<{ isUpdate: boolean; identityName?: string }>();
 const { currentActor } = useCurrentActorClient();
 
 const { identities } = useCurrentUserIdentities();
+
+// locked profiles are named after the account email.
+const { lockProfiles } = useRestrictProfiles();
+const { currentUser } = useCurrentUserClient();
+const nameLocked = computed(
+  () =>
+    lockProfiles.value &&
+    currentUser.value?.role !== ICurrentUserRole.ADMINISTRATOR
+);
 
 const {
   result: personResult,

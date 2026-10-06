@@ -3,6 +3,7 @@ defmodule Mobilizon.Service.Auth.Authenticator do
   Module to handle authentification (currently through database or LDAP)
   """
   alias Mobilizon.Users
+  alias Mobilizon.Users.LockedProfile
   alias Mobilizon.Users.User
   alias Mobilizon.Web.Auth.Guardian
 
@@ -62,11 +63,17 @@ defmodule Mobilizon.Service.Auth.Authenticator do
   """
   @spec generate_tokens(User.t() | ApplicationToken.t()) :: {:ok, tokens} | {:error, any()}
   def generate_tokens(user) do
-    with {:ok, access_token} <- generate_access_token(user),
+    with :ok <- maybe_ensure_locked_profile(user),
+         {:ok, access_token} <- generate_access_token(user),
          {:ok, refresh_token} <- generate_refresh_token(user) do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}}
     end
   end
+
+  # Every login of a user goes through here (password, LDAP,
+  # OAuth, email validation), so this is where locked profiles are created and synced.
+  defp maybe_ensure_locked_profile(%User{} = user), do: LockedProfile.ensure(user)
+  defp maybe_ensure_locked_profile(_), do: :ok
 
   @doc """
   Generates access token for an user.
