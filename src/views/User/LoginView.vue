@@ -298,7 +298,7 @@ const caseWarningType = computed<string | undefined>(() => {
 const currentProvider = computed(() => {
   const queryProvider = route?.query.provider as string | undefined;
   if (queryProvider) {
-    return SELECTED_PROVIDERS[queryProvider];
+    return SELECTED_PROVIDERS[queryProvider] ?? queryProvider;
   }
   return "unknown provider";
 });

@@ -29,7 +29,12 @@ const props = defineProps<{
   oauthProvider: IOAuthProvider;
 }>();
 
+// a provider with a label from the config (such as a generic
+// OpenID Connect provider) gets a button even if its id isn't a known one.
 const isProviderSelected = computed((): boolean => {
-  return Object.keys(SELECTED_PROVIDERS).includes(props.oauthProvider.id);
+  return (
+    !!props.oauthProvider.label ||
+    Object.keys(SELECTED_PROVIDERS).includes(props.oauthProvider.id)
+  );
 });
 </script>

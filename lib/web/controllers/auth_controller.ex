@@ -14,6 +14,16 @@ defmodule Mobilizon.Web.AuthController do
     signing_salt: {Mobilizon.Web.AuthController, :secret_key_base, []}
   )
 
+  # ueberauth_oidcc keeps its state in a cookie and reads
+  # conn.req_cookies on the callback, which crashes unless cookies are fetched.
+  plug(:fetch_cookies)
+
+  # behind a TLS-terminating proxy the request arrives as plain HTTP,
+  # but OAuth/OIDC callback URLs must be the public https ones. ueberauth_oidcc
+  # rejects the callback ("Redirected to the wrong URI: http://...") otherwise. Take scheme,
+  # host and port from the endpoint's public URL (MOBILIZON_INSTANCE_HOST).
+  plug(:put_public_url)
+
   plug(Ueberauth)
 
   @spec request(Plug.Conn.t(), map()) :: Plug.Conn.t()
@@ -153,6 +163,11 @@ defmodule Mobilizon.Web.AuthController do
 
   defp redirect_to_error(conn, :unknown_error, provider_name) do
     redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp put_public_url(conn, _opts) do
+    %URI{scheme: scheme, host: host, port: port} = Mobilizon.Web.Endpoint.struct_url()
+    %{conn | scheme: String.to_existing_atom(scheme), host: host, port: port}
   end
 
   def secret_key_base do
