@@ -6,7 +6,7 @@ WORKDIR /build
 COPY . .
 
 # Network timeout because it's slow when cross-compiling
-RUN npm install && npm run build
+RUN npm ci && npm run build
 
 # Then, build the application binary
 FROM elixir:1.18-alpine AS builder

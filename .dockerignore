@@ -19,7 +19,6 @@ Makefile
 README.md
 SECURITY.md
 ssh_match_hostname
-package-lock.json
 node_modules
 playwright-report
 test
